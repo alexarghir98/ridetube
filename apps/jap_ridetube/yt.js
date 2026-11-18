@@ -252,6 +252,10 @@ class Model {
         } else if (m.ev === 'extras') {
             this.extras = { id: String(m.id), chapters: (Array.isArray(m.chapters) ? m.chapters : []).filter((c) => Array.isArray(c) && c[0] >= 0),
                 segments: (Array.isArray(m.segments) ? m.segments : []).filter((c) => Array.isArray(c) && c[1] > c[0]) };
+        } else if (m.ev === 'log_tail') {
+            if (!this.logs || this.logs.state !== 'loading' || !Array.isArray(m.lines)) return;
+            const lines = m.lines.filter((l) => typeof l === 'string');
+            this.logs = { state: 'shown', lines, back: 0 };
         } else if (m.ev === 'logs_sent' || m.ev === 'logs_error') {
             if (!this.logs || this.logs.state !== 'sending') return;
             this.logs = m.ev === 'logs_sent' && /^[A-Za-z0-9]{4,16}$/.test(String(m.id)) ? { state: 'sent', code: String(m.id) }
@@ -285,6 +289,10 @@ class Model {
                 this._changed(); return;
             }
             // a service older than send_logs: the logs page says so, nothing wrong with playback
+            if (m.msg === 'unknown cmd log_tail') {
+                if (this.logs && this.logs.state === 'loading') this.logs = { state: 'error', msg: 'old' };
+                this._changed(); return;
+            }
             if (m.msg === 'unknown cmd send_logs') {
                 if (this.logs && this.logs.state === 'sending') this.logs = { state: 'error', msg: 'old' };
                 this._changed(); return;
@@ -458,6 +466,13 @@ class Model {
         p.loading = false; p.error = 'The RideTube service (jap-ridetube-d) is not running';
         return false;
     }
+    /** this build's Show log: the service's recent log (log_tail), shown on the logs page */
+    showLogs() {
+        const sent = this.send({ cmd: 'log_tail', n: 150 });
+        this.logs = sent ? { state: 'loading', t: Date.now() } : { state: 'error', msg: 'failed' };
+        this._changed();
+        return sent;
+    }
     /** the log report: the confirm step (askLogs), sent with this app's version, dropped; never two at once */
     askLogs() { if (this.logs && this.logs.state === 'sending') return; this.logs = { state: 'confirm' }; this._changed(); }
     dropLogs() { if (this.logs && this.logs.state === 'sending') return; this.logs = null; this._changed(); }
@@ -470,7 +485,7 @@ class Model {
     }
     /** a report with no answer after ms (the service times out at 30 s): failed, never "Sending..." for ever */
     checkLogs(now, ms) {
-        if (!this.logs || this.logs.state !== 'sending' || now - this.logs.t < ms) return false;
+        if (!this.logs || (this.logs.state !== 'sending' && this.logs.state !== 'loading') || now - this.logs.t < ms) return false;
         this.logs = { state: 'error', msg: 'failed' };
         this._changed();
         return true;

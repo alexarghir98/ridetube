@@ -193,5 +193,11 @@
   "Video while driving": "Video beim Fahren",
   "I agree": "Zustimmen",
   "Agreeing needs the touchscreen. Pick any page to leave it off": "Zustimmen nur per Touchscreen. Seite wählen, damit es aus bleibt",
-  "Update yt-dlp by itself: the newest release, looked for daily (off: the one in this RideTube service)": "yt-dlp selbst aktualisieren: die neueste Version, täglich gesucht (aus: die im RideTube-Dienst)"
+  "Update yt-dlp by itself: the newest release, looked for daily (off: the one in this RideTube service)": "yt-dlp selbst aktualisieren: die neueste Version, täglich gesucht (aus: die im RideTube-Dienst)",
+  "Show the service log": "Dienstprotokoll anzeigen",
+  "Show log": "Protokoll",
+  "Reading the log...": "Protokoll wird gelesen...",
+  "Service log: lines {from}-{to} of {count}": "Dienstprotokoll: Zeilen {from}-{to} von {count}",
+  "Older": "Älter",
+  "Newer": "Neuer"
 }

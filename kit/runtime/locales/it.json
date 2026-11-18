@@ -193,5 +193,11 @@
   "Video while driving": "Video in marcia",
   "I agree": "Accetto",
   "Agreeing needs the touchscreen. Pick any page to leave it off": "Per accettare serve il touchscreen. Scegli una pagina per lasciarlo spento",
-  "Update yt-dlp by itself: the newest release, looked for daily (off: the one in this RideTube service)": "Aggiorna yt-dlp da solo: la versione più recente, cercata ogni giorno (disattivato: quella del servizio RideTube)"
+  "Update yt-dlp by itself: the newest release, looked for daily (off: the one in this RideTube service)": "Aggiorna yt-dlp da solo: la versione più recente, cercata ogni giorno (disattivato: quella del servizio RideTube)",
+  "Show the service log": "Mostra il registro del servizio",
+  "Show log": "Registro",
+  "Reading the log...": "Lettura del registro...",
+  "Service log: lines {from}-{to} of {count}": "Registro del servizio: righe {from}-{to} di {count}",
+  "Older": "Più vecchi",
+  "Newer": "Più recenti"
 }

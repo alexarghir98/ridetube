@@ -139,6 +139,7 @@ App → daemon (every `case` of `onLine` in `ytd.js`, no more, no fewer: `test_y
 | `{"cmd":"playlists"}` | → `playlists` (the account's playlists, or error as `feed`) |
 | `{"cmd":"playlist","id":".."}` | → `playlist` (its videos, or error as `feed`, or `bad playlist`) |
 | `{"cmd":"send_logs","app":"0.4.0"}` | the recent log and the health check's lines, redacted, to the log relay (below, "Log reports") → `logs_sent` or `logs_error`; a second one while one is on its way is ignored |
+| `{"cmd":"log_tail","n":150}` | this build (BimmerTube): → `{"ev":"log_tail","lines":[..]}`, the newest `n` (10-300, default 150) lines of the log report's log (redacted as for the relay), at most 240 characters each, for the app's Show log page; nothing is sent anywhere |
 | `{"cmd":"health"}` | 0.4.0, cap `health`: → one `{"ev":"health","key","ok","text"}` per check as each one ends, then `{"ev":"health","done":true}`, all within about 8 s. The 12 keys: `service`, `node`, `node22`, `python`, `ytdlp`, `uid`, `lease`, `dns`, `tls`, `free`, `audio`, `socket` (`ytdlp`, `dns` and `tls` from `ytfetch.py check --json`, run as the fetch uid). Every key is answered; a check that could not run says `not checked: <why>`. `text` is one short line with no address (IP, MAC), video id or title |
 | `{"cmd":"related","id":".."}` | 0.4.0, cap `related`: → `{"ev":"related","id","items":[item]}` (the TVHTML5 watch-next tiles, the video itself left out, ≤ 100; kept 10 min per video and language) or `{"ev":"related","id","error"}` (`bad id`, `related offline`) |
 | `{"cmd":"ytdlp","auto":bool}` | 0.4.1, cap `ytdlp` (WP6): `auto` optional (sets the self-update on or off, kept in `state/ytdlp.json`) → `{"ev":"ytdlp","auto","version","bundled","checking"}`, also after each look for a newer yt-dlp (above, "On the car, between releases"). `version`: the yt-dlp fetches use; `bundled`: `ytdlp.pyz`'s, known after the first look |
@@ -178,6 +179,7 @@ Daemon → app:
   Popular...), as `feed`.
 - `{"ev":"playlists",..}`, `{"ev":"playlist",..}`, `{"ev":"logs_sent",..}`, `{"ev":"logs_error",..}`: below.
 - 0.4.0 / 0.4.1, cap-gated: `{"ev":"health",..}`, `{"ev":"related",..}`, `{"ev":"ytdlp",..}` (shapes in the table).
+- this build: `{"ev":"log_tail","lines":[..]}` (the table).
 - 0.5.0, not yet implemented: `{"ev":"remote","on","url","expires"}`; `{"ev":"remote_do","do":"search|play","q"|"id"}`: a
   phone action the app carries out itself (the parked rule and the screen stay the app's); `{"ev":"net","proxy","ok"}`.
 

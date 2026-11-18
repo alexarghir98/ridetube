@@ -1802,6 +1802,7 @@ Daemon.prototype.onLine = function (line) {
     case 'related': return this.related(m.id);
     case 'remote': return this.remote(m.on);   // 0.5.0
     case 'proxy': return this.proxy(m.mode);   // 0.5.0
+    case 'log_tail': return this.emit({ ev: 'log_tail', lines: this.logTail(m.n) });
     default: return this.emit({ ev: 'error', msg: 'unknown cmd ' + m.cmd });
     }
 };
@@ -1911,6 +1912,11 @@ Daemon.prototype.report = function (app, health) {
     return { app: /^[\d.]{1,12}$/.test(String(app)) ? String(app) : 'unknown', service: VERSION,
         os: lastBytes(red(lines(path.join(this.opts.etcDir, 'os-release')).slice(0, 5)), OS_MAX).join('\n'),
         log: lastBytes(red(log), REPORT_MAX).join('\n') };
+};
+// the log on the car's own screen (this build's Show log): the report's lines, redacted as for the relay, the newest last
+Daemon.prototype.logTail = function (n) {
+    const max = Math.max(10, Math.min(300, Number(n) || 150));
+    return this.report('').log.split('\n').slice(-max).map((l) => l.slice(0, 240));
 };
 Daemon.prototype.sendLogs = async function (app) {
     if (this.reporting) return undefined;

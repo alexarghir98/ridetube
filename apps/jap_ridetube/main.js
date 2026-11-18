@@ -224,11 +224,10 @@ mgu.run({
         ui.onClick('BTN_HEALTH', () => { if (model.can('health')) { model.runHealth(); show('health'); ui.open('VIEW'); } });
         // Send logs to the developer: the logs page asks first; pressed again there (the HMI's own screen has no Send button), sends
         let logsFrom = 'home';
+        // this build: Show log, the service's recent log on the screen (nothing leaves the car)
         function openLogs() {
-            const hmiScreen = !(ctx.display && ctx.display.own && ctx.display.own());   // (no Send button drawn there)
-            if (hmiScreen && mode === 'logs' && model.logs && model.logs.state === 'confirm') { model.sendLogs(APP_VERSION); return; }
             if (mode !== 'logs') logsFrom = mode;
-            model.askLogs();
+            model.showLogs();
             show('logs');
         }
         ui.onClick('BTN_LOGS', () => { openLogs(); ui.open('VIEW'); });
@@ -1042,6 +1041,25 @@ mgu.run({
                 if (cv.own) cv.target(x - w / 2, y, w, h, () => { fn(); dirty = true; }, key, 38);
             };
             const send = () => model.sendLogs(APP_VERSION), back = () => { model.dropLogs(); goBack(logsFrom); };
+            if (l.state === 'loading') return say(cv, whole('Reading the log...'));
+            if (l.state === 'shown') {
+                // the newest lines that fit, or older ones (Older / Newer move by a page)
+                const LH = 21, y0 = TOP + 30, rows = Math.floor((H - 70 - y0) / LH), all = l.lines;
+                const end = Math.max(0, all.length - l.back), start = Math.max(0, end - rows);
+                cv.text(message('Service log: lines {from}-{to} of {count}', { from: start + 1, to: end, count: all.length }), RAIL_W + 24, TOP + 18, 18, C.dim, LIT);
+                all.slice(start, end).forEach((t, i) => cv.text(fit(cv, t, 18, W - RAIL_W - 48, LIT), RAIL_W + 24, y0 + 16 + i * LH, 18, '#e6e6e6', LIT));
+                if (!cv.own) return undefined;
+                const small = (x, label, key, fn) => {
+                    const w = 220, h = 54, y = H - 62;
+                    cv.roundRect(x - w / 2, y, w, h, 27, key === focusKey ? '#ffffff' : C.card);
+                    cv.text(whole(label), x, y + 36, 24, key === focusKey ? '#0f0f0f' : '#ffffff', { literal: true, font: 'bold', align: 'center' });
+                    cv.target(x - w / 2, y, w, h, () => { fn(); dirty = true; }, key, 27);
+                };
+                small(MID - 260, 'Older', 'logs:older', () => { l.back = Math.min(Math.max(0, all.length - rows), l.back + rows); });
+                small(MID, 'Newer', 'logs:newer', () => { l.back = Math.max(0, l.back - rows); });
+                small(MID + 260, 'Close', 'logs:close', back);
+                return undefined;
+            }
             if (l.state === 'sending') return say(cv, whole('Sending...'));
             if (l.state === 'sent') {
                 say(cv, whole('Sent. Add this code to your GitHub issue:'));
@@ -1340,7 +1358,7 @@ mgu.run({
                 cv.text(translate('Try again'), tx, cy + 100, 26, '#dddddd', { literal: true, align: 'center' });
                 // beside it: the logs page (an arrow going up, out of the car)
                 ctl('ov:logs', lx, cy, 42, openLogs, (c) => { cv.line(lx, cy + 15, lx, cy - 14, 5, c); cv.polyline([[lx - 12, cy - 2], [lx, cy - 14], [lx + 12, cy - 2]], 5, c); });
-                cv.text(whole('Send logs'), lx, cy + 100, 26, '#dddddd', { literal: true, align: 'center' });
+                cv.text(whole('Show log'), lx, cy + 100, 26, '#dddddd', { literal: true, align: 'center' });
             }
             if (mid) cv.text(fit(cv, mid, 30, SW - 2 * LX, LIT), cx, model.state === 'preparing' || live || up || (model.state === 'error' && model.id) ? cy + 150 : cy + 10, 30, '#ffffff', { literal: true, align: 'center' });
             // bottom: the progress bar (the track, the part played, the scrubber) and the times

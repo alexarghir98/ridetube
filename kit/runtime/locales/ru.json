@@ -193,5 +193,11 @@
   "Video while driving": "Видео во время движения",
   "I agree": "Я согласен",
   "Agreeing needs the touchscreen. Pick any page to leave it off": "Для согласия нужен сенсорный экран. Выберите любую страницу, чтобы оставить выключенным",
-  "Update yt-dlp by itself: the newest release, looked for daily (off: the one in this RideTube service)": "Обновлять yt-dlp самостоятельно: новейший выпуск, проверка раз в день (выкл.: тот, что в службе RideTube)"
+  "Update yt-dlp by itself: the newest release, looked for daily (off: the one in this RideTube service)": "Обновлять yt-dlp самостоятельно: новейший выпуск, проверка раз в день (выкл.: тот, что в службе RideTube)",
+  "Show the service log": "Показать журнал сервиса",
+  "Show log": "Журнал",
+  "Reading the log...": "Читаю журнал...",
+  "Service log: lines {from}-{to} of {count}": "Журнал сервиса: строки {from}-{to} из {count}",
+  "Older": "Раньше",
+  "Newer": "Новее"
 }

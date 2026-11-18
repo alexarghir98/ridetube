@@ -947,63 +947,51 @@ async function appFrames() {
         hu.ui.text = ut;
         console.log('ok   wrong clock: the warning once, OK closes it, the info line while it lasts, nothing from an older service');
     }
-    // Send logs to the developer: the menu entry asks first (Send / Cancel), then the code; the error screen's second button
+    // Show log (this build): the menu entry and the error screen's button show the service's log; nothing is sent
     {
-        const ASK = 'Send RideTube\'s recent logs to the developer?', tgt = (k) => disp.pageTargets.find((x) => x.key === k);
-        const sends = () => d.cmds('send_logs').length;
-        const APP = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'apps', 'jap_ridetube', 'app.json'), 'utf8')).version;
+        const tgt = (k) => disp.pageTargets.find((x) => x.key === k);
+        const tails = () => d.cmds('log_tail').length;
         hu.handlers.BTN_LOGS();
+        await until(() => tails() === 1, 2000, 'log_tail asked');
+        assert.deepStrictEqual(d.cmds('log_tail')[0], { cmd: 'log_tail', n: 150 });
         await drawn();
-        assert.ok(texts.indexOf(ASK) >= 0 && texts.indexOf('Account details and the videos you watched are removed first.') >= 0, texts.join('|'));
-        assert.strictEqual(sends(), 0, 'nothing sent before the confirm');
+        assert.ok(texts.indexOf('Reading the log...') >= 0, texts.join('|'));
+        const lines = Array.from({ length: 40 }, (_, i) => '2026-11-19T00:00:' + String(i).padStart(2, '0') + '.000Z line ' + (i + 1));
+        d.send({ ev: 'log_tail', lines });
+        await sleep(100); await drawn();
+        assert.ok(texts.some((t) => /^Service log: lines \d+-40 of 40$/.test(t)), texts.join('|'));
+        assert.ok(texts.indexOf(lines[39]) >= 0 && texts.indexOf(lines[0]) < 0, 'the newest lines: ' + texts.slice(0, 5).join('|'));
+        assert.strictEqual(d.cmds('send_logs').length, 0, 'nothing sent');
         if (own) {
-            assert.ok(tgt('logs:send') && tgt('logs:cancel'), 'Send and Cancel: ' + keys());
-            tgt('logs:cancel').run();
-            await drawn();
-            assert.ok(texts.indexOf(ASK) < 0 && sends() === 0, 'Cancel: back, nothing sent');
-            hu.handlers.BTN_LOGS();
-            await drawn();
-            hu.handlers.BTN_LOGS();             // the menu entry again where Send is drawn: still just the question
-            await sleep(50);
-            assert.strictEqual(sends(), 0, 'the menu entry pressed twice does not skip Send / Cancel');
-            disp.onPageFocus('logs:send'); disp.onScroll(100);   // the controller on Send, a turn: no throw
-            await drawn();
-            tgt('logs:send').run();
-        } else hu.handlers.BTN_LOGS();          // (the HMI's own screen: the menu entry again)
-        await until(() => sends() === 1, 2000, 'send_logs sent');
-        assert.deepStrictEqual(d.cmds('send_logs')[0], { cmd: 'send_logs', app: APP }, 'with the app\'s version');
-        await drawn();
-        assert.ok(texts.indexOf('Sending...') >= 0, texts.join('|'));
-        d.send({ ev: 'logs_sent', id: 'ABC123' });
-        await sleep(100); await drawn();
-        assert.ok(texts.indexOf('Sent. Add this code to your GitHub issue:') >= 0 && texts.indexOf('ABC123') >= 0, texts.join('|'));
-        // an error from the service: its sentence; an older service: says so, and no playback error from it
-        hu.handlers.BTN_LOGS();
-        if (own) { await drawn(); tgt('logs:send').run(); } else hu.handlers.BTN_LOGS();
-        await until(() => sends() === 2, 2000, 'second report');
-        d.send({ ev: 'logs_error', msg: 'busy' });
-        await sleep(100); await drawn();
-        assert.ok(texts.indexOf('Too many reports right now - try again later') >= 0, texts.join('|'));
-        if (own) { tgt('logs:send').run(); await until(() => sends() === 3, 2000, 'Try again sends again'); } else { hu.handlers.BTN_LOGS(); hu.handlers.BTN_LOGS(); await until(() => sends() === 3, 2000, 'again'); }
-        d.send({ ev: 'error', msg: 'unknown cmd send_logs' });
-        await sleep(100); await drawn();
-        assert.ok(texts.indexOf('Sending logs needs a newer jap-ridetube-d tool on the car') >= 0, texts.join('|'));
-        if (own) {
-            // the player's error screen: Send logs beside Try again opens the same page
+            assert.ok(tgt('logs:older') && tgt('logs:newer') && tgt('logs:close'), 'Older, Newer, Close: ' + keys());
+            tgt('logs:older').run(); await drawn();
+            assert.ok(texts.indexOf(lines[39]) < 0 && texts.some((t) => /^Service log: lines \d+-\d+ of 40$/.test(t) && !/-40 of/.test(t)), 'Older: earlier lines: ' + texts.filter((t) => /Service log/.test(t)).join('|'));
+            tgt('logs:newer').run(); await drawn();
+            assert.ok(texts.indexOf(lines[39]) >= 0, 'Newer: the newest again');
+            tgt('logs:close').run(); await drawn();
+            assert.ok(!texts.some((t) => /^Service log:/.test(t)), 'Close: back');
+            // the player's error screen: Show log beside Try again opens the log
             d.send({ ev: 'state', state: 'error', id: 'lib1' });
             d.send({ ev: 'error', msg: 'fetch: audio failed at 99 %' });
             hu.handlers.BTN_NOW();
             await sleep(100); await drawn();
-            assert.ok(tgt('ov:play') && tgt('ov:logs') && texts.indexOf('Send logs') >= 0 && texts.indexOf('Try again') >= 0, 'Try again and Send logs: ' + keys());
+            assert.ok(tgt('ov:play') && tgt('ov:logs') && texts.indexOf('Show log') >= 0 && texts.indexOf('Try again') >= 0, 'Try again and Show log: ' + keys());
             tgt('ov:logs').run();
-            await drawn();
-            assert.ok(texts.indexOf(ASK) >= 0 && tgt('logs:send'), 'the logs page asks');
-            tgt('logs:cancel').run();
-            await drawn();
-            assert.ok(tgt('ov:logs'), 'Cancel: back on the error screen');
+            await until(() => tails() === 2, 2000, 'log_tail from the error screen');
+            d.send({ ev: 'log_tail', lines: lines.slice(0, 3) });
+            await sleep(100); await drawn();
+            assert.ok(texts.indexOf(lines[2]) >= 0, texts.join('|'));
+            tgt('logs:close').run(); await drawn();
+            assert.ok(tgt('ov:logs'), 'Close: back on the error screen');
             d.send({ ev: 'state', state: 'idle' });
         }
-        console.log('ok   send logs: asked first, Cancel sends nothing, Sending..., the code; the service\'s errors; the error screen\'s button');
+        // an older service: says so
+        hu.handlers.BTN_LOGS();
+        await until(() => tails() >= 2, 2000, 'asked again');
+        d.send({ ev: 'error', msg: 'unknown cmd log_tail' });
+        await sleep(100); await drawn();
+        assert.ok(texts.indexOf('Sending logs needs a newer jap-ridetube-d tool on the car') >= 0 || texts.some((t) => /newer jap-ridetube-d/.test(t)), texts.join('|'));
+        console.log('ok   show log: the service\'s newest lines on the page, Older / Newer / Close, from the menu and the error screen; nothing sent');
     }
     if (own) await wp5Frames({ hu, d, disp, keys, drawn, texts, wp5, rock: (v) => rockerH({ operationPushButtonAudioAutomaticTuningSteeringWheel: v }), speed: (v) => speedH({ speedVehicleCentreOfGravity: v }) });
     else console.log('skip WP5 frames (the stub does not run the screen)');
@@ -1397,7 +1385,9 @@ async function wp7Frames(x) {
     await page('health', async () => { hu.handlers.BTN_HEALTH(); d.send({ ev: 'health', key: 'dns', ok: false, text: 'нет ответа' }); d.send({ ev: 'health', key: 'tls', ok: false, text: 'нет ответа' }); d.send({ ev: 'health', done: true }); });
     assert.ok(texts.indexOf('2 проверки не пройдены') >= 0, 'few: ' + texts.join('|'));
     await page('logs', async () => hu.handlers.BTN_LOGS());
-    await page('logs cancel', async () => tgt('logs:cancel').run());
+    await page('logs shown', async () => d.send({ ev: 'log_tail', lines: ['2026-11-19T00:00:00.000Z 1234'] }));
+    assert.ok(texts.indexOf('Журнал сервиса: строки 1-1 из 1') >= 0 && texts.indexOf('Раньше') >= 0, 'Show log in Russian: ' + texts.join('|'));
+    await page('logs close', async () => tgt('logs:close').run());
     await page('player', async () => { d.send({ ev: 'state', state: 'playing', id: 'RUSVIDEO001', title: 'Новости дня' }); d.send({ ev: 'time', elapsed: 1000, total: 300000 }); hu.handlers.BTN_NOW(); await sleep(300); await hu.loopFn(); });
     await page('signed out', async () => { d.send({ ev: 'state', state: 'idle' }); d.send({ ev: 'auth', state: 'code', code: 'ABC-DEF', url: 'https://www.google.com/device' }); hu.handlers.BTN_HOME(); });
     assert.ok(texts.indexOf('Введите этот код на телефоне') >= 0, 'the sign-in card: ' + texts.join('|'));

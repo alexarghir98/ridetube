@@ -1137,6 +1137,18 @@ async function main() {
         assert.deepStrictEqual(await c.waitFor((x) => /^logs_/.test(x.ev)), { ev: 'logs_error', msg: 'failed' });
     });
 
+    await t('log_tail (Show log): the newest redacted lines on the socket, nothing sent anywhere', async () => {
+        c.clear(); yt.calls.length = 0;
+        c.send({ cmd: 'log_tail', n: 12 });
+        const e = await c.waitFor((x) => x.ev === 'log_tail');
+        assert.ok(Array.isArray(e.lines) && e.lines.length === 12, JSON.stringify(e).slice(0, 200));
+        assert.ok(e.lines.every((l) => typeof l === 'string' && l.length <= 240));
+        assert.ok(e.lines.some((l) => /^\d{4}-\d\d-\d\dT/.test(l)), 'the ring lines (the diagnostics of the report may follow them): ' + e.lines.slice(-3).join(' | '));
+        assert.strictEqual(yt.calls.length, 0, 'no request');
+        c.send({ cmd: 'log_tail' });
+        assert.ok((await c.waitFor((x) => x.ev === 'log_tail' && x.lines.length !== 12)).lines.length <= 150, 'default: at most 150');
+    });
+
     // ---- send_logs through the real fetch helper to a fake relay on 127.0.0.1 (MGU_YT_REPORT_URL)
     const relay = { mode: 200, got: [], delay: 0 };
     const srv = require('http').createServer((req, res) => {

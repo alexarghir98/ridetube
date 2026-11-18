@@ -149,7 +149,7 @@
         [
           "button",
           "BTN_LOGS",
-          "Send logs to the developer"
+          "Show the service log"
         ],
         [
           "text",
