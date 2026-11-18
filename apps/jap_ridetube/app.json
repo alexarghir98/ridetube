@@ -1,7 +1,7 @@
 {
   "id": "jap_ridetube",
-  "title": "RideTube",
-  "description": "Video in the car: an unofficial client for YouTube. Your Home, Subscriptions, Watch later, History and playlists (signed in on the car), search, channels and chapters; the sound through the car's media player, the picture only while parked (a podcast view while driving). Needs the jap-ridetube-d tool.",
+  "title": "BimmerTube",
+  "description": "BimmerTube (a personal build of RideTube): video in the car: an unofficial client for YouTube. Your Home, Subscriptions, Watch later, History and playlists (signed in on the car), search, channels and chapters; the sound through the car's media player, the picture only while parked (a podcast view while driving). Needs the jap-ridetube-d tool.",
   "version": "0.4.3",
   "license": "GPL-3.0-or-later",
   "vendor": "custom",
@@ -23,10 +23,10 @@
     {
       "name": "VIEW",
       "kind": "canvas",
-      "title": "RideTube",
+      "title": "BimmerTube",
       "hmi": false,
       "fill": true,
-      "bg": "#0f0f0f",
+      "bg": "#000000",
       "buttons": [
         [
           "BTN_PLAY",
@@ -53,7 +53,7 @@
     {
       "name": "MAIN",
       "kind": "menu",
-      "title": "RideTube search",
+      "title": "BimmerTube search",
       "settings": true,
       "items": [
         [

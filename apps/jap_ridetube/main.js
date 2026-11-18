@@ -607,7 +607,8 @@ mgu.run({
             return s.slice(0, lo).replace(/\s+$/, '') + '…';     // (no trimEnd on the unit's Node 8)
         };
         const LIT = { literal: true }, LITB = { literal: true, font: 'bold' };
-        const C = { bg: '#0b0f1e', card: '#1a2038', ph: '#232a46', text: '#f1f3ff', dim: '#a4abc8', red: '#ff3f8e', cyan: '#3ad6ff', amber: '#ffd36b' };   // red: the accent (neon pink)
+        // BimmerTube: red on black (C.red is the accent, C.cyan the logo's outline)
+        const C = { bg: '#000000', card: '#1b1b1b', ph: '#262626', text: '#ffffff', dim: '#a6a6a6', red: '#e3001b', cyan: '#ffffff', amber: '#ffd36b' };
         const browsing = () => mode !== 'player';
 
         // thumbs: a pool of picture ids by video, least recently drawn reused (the renderer holds 64 pictures an app)
@@ -766,7 +767,7 @@ mgu.run({
         }
 
         /* a channel: a round mark with its initial, its name, its @handle; or an action (r.act: Search channels, All) */
-        const HUES = ['#c62828', '#ad1457', '#6a1b9a', '#283593', '#1565c0', '#00838f', '#2e7d32', '#9e9d24', '#ef6c00', '#4e342e'];
+        const HUES = ['#e3001b', '#b00015', '#8a0010', '#5c000b', '#c40018', '#6e0010', '#3a3a3a', '#4d4d4d', '#2b2b2b', '#6b6b6b'];   // red and black
         function drawChan(cv, r, x, y, key) {
             if (key === focusKey) cv.roundRect(x - 10, y - 10, TW + 20, TILE_H + 16, 18, C.card);
             const cx = x + TW / 2, cy = y + TH / 2, name = String(r.title || r.id);
@@ -1166,10 +1167,10 @@ mgu.run({
         function drawPodcast(cv, SW, SH, LX, tg, run, live) {
             cv.fillRect(0, 0, SW, SH, C.bg);
             const x0 = LX + 46, top = 40, ch = model.channel || (model.item(model.id) || {}).channel;
-            cv.text('RideTube', x0, top + 30, 34, '#ffffff', LITB);
+            const nw = cv.text('BimmerTube', x0, top + 30, 34, '#ffffff', LITB) + 24;
             const chip = translate('Podcast mode · driving'), cw = cv.textWidth(chip, 22, LIT) + 40;
-            cv.roundRect(x0 + 170, top, cw, 40, 20, C.ph);
-            cv.text(chip, x0 + 170 + cw / 2, top + 28, 22, C.dim, { literal: true, align: 'center' });
+            cv.roundRect(x0 + nw, top, cw, 40, 20, C.ph);
+            cv.text(chip, x0 + nw + cw / 2, top + 28, 22, C.dim, { literal: true, align: 'center' });
             cv.text(translate('Video returns when parked'), SW - 60, top + 28, 22, '#717171', { literal: true, align: 'right' });
             // laid out from the bottom: the notice / up-next row, the controls, the bar; the artwork takes what is left
             const cy = SH - 178, by = cy - 128, ay = top + 72, ah = Math.max(120, by - 56 - ay), aw = Math.round(ah * 16 / 9), ax = x0;
@@ -1185,7 +1186,7 @@ mgu.run({
             for (; i < words.length; i++) { const t = l1 ? l1 + ' ' + words[i] : words[i]; if (l1 && cv.textWidth(t, 44, LITB) > tw) break; l1 = t; }
             [fit(cv, l1, 44, tw, LITB), fit(cv, words.slice(i).join(' '), 44, tw, LITB)].filter(Boolean).forEach((l, k) => cv.text(l, tx, ay + 84 + k * 52, 44, '#ffffff', LITB));
             const chap = model.chapter();
-            if (chap) cv.text(fit(cv, chap, 28, tw, LIT), tx, ay + ah - 6, 28, '#3ea6ff', LIT);
+            if (chap) cv.text(fit(cv, chap, 28, tw, LIT), tx, ay + ah - 6, 28, C.red, LIT);
             // the bar
             const bw = SW - x0 - 60, tot = model.total, ex = model.extras && model.extras.id === model.id ? model.extras : null;
             const at = (ms) => x0 + Math.round(bw * Math.min(1, tot ? ms / tot : 0));
@@ -1195,7 +1196,7 @@ mgu.run({
                 cv.roundRect(x0, by, Math.max(10, at(el) - x0), 10, 5, C.red);
                 if (ex) sbSegs(ex).forEach((g) => cv.fillRect(at(g[0]), by, Math.max(4, at(g[1]) - at(g[0])), 10, sbColor(g)));
                 if (ex) ex.chapters.forEach((k) => { if (k[0] > 0) cv.fillRect(at(k[0]) - 2, by, 4, 10, C.bg); });
-                if (bf) cv.circle(at(el), by + 5, 24, '#3ea6ff');
+                if (bf) cv.circle(at(el), by + 5, 24, C.red);
                 cv.circle(at(el), by + 5, bf || scrub ? 18 : 14, C.red);
                 tg(x0 - 10, by - 36, bw + 20, 80, run(() => model.toggle()), 'ov:bar', 0, turnSeek);
                 seekBar = { x0, w: bw, y0: by - 40, y1: by + 50, s: cv.place.scale };
@@ -1207,7 +1208,7 @@ mgu.run({
             const mid = x0 + bw / 2 + (queue.length ? 0 : 100);   // with Next: four buttons; without: three, centred
             const big = (key, x, r, light, fn, glyph) => {
                 const f = focusKey === key;
-                cv.circle(x, cy, r, f ? '#3ea6ff' : light ? '#ffffff' : C.ph);
+                cv.circle(x, cy, r, f ? C.red : light ? '#ffffff' : C.ph);
                 glyph(light && !f ? C.bg : '#ffffff');
                 tg(x - r - 10, cy - r - 10, 2 * r + 20, 2 * r + 20, run(fn), key, r + 10);
             };
@@ -1238,7 +1239,7 @@ mgu.run({
             const ask = askSeg();
             if (ask) {
                 const tt = translate('Skip ') + translate(sbName(ask[2])), w2 = cv.textWidth(tt, 30, LITB) + 80, f = focusKey === 'ov:sbskip';
-                cv.roundRect(x0, SH - 100, w2, 72, 36, f ? '#3ea6ff' : '#ffffff');
+                cv.roundRect(x0, SH - 100, w2, 72, 36, f ? C.red : '#ffffff');
                 cv.text(tt, x0 + 40, SH - 52, 30, f ? '#ffffff' : C.bg, LITB);
                 tg(x0, SH - 100, w2, 72, run(sbJump(ask)), 'ov:sbskip', 36);
             } else if (resumePill(cv, x0, SH - 100, 72, 30, tg, run)) {

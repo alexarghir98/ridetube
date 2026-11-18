@@ -354,7 +354,7 @@ function rideTubeStrings() {
 const RT_SOURCES = ['apps/jap_ridetube/main.js', 'apps/jap_ridetube/health.js', 'apps/jap_ridetube/yt.js', 'apps/jap_ridetube/app.json', 'kit/runtime/sheet.js']
     .map((f) => fs.readFileSync(path.join(__dirname, '..', '..', f), 'utf8')).join('\n').replace(/\\(['"])/g, '$1');
 const RU = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'runtime', 'locales', 'ru.json'), 'utf8'));
-const BRAND = /^(RideTube|720p)$/;   // names, no row
+const BRAND = /^(RideTube|BimmerTube|720p)$/;   // names, no row
 
 test('ru plurals: one, few, many (11-14 many), the catalog\'s three forms; English keeps two, zh-CN one', () => {
     const i18n = require('../runtime/i18n');
