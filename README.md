@@ -1,3 +1,12 @@
+> **Branch `store` of alexarghir98/ridetube: BimmerTube, a personal build of RideTube, not the original.** RideTube by
+> [JustAnotherPU](https://github.com/JustAnotherPU/ridetube) with changes on top: yt-dlp updates on the car (offered
+> upstream), a red and black look, and the service's log on the car's screen. Same ids as the original (app 0.4.3,
+> service 0.4.1): uninstall JustAnotherPU's RideTube app and RideTube service first, then add this repository as a
+> source in the MGU Store with the branch `store`. The Store builds the app on the head unit (`mgu-repo.json`); the
+> service's `ytdec` and `ytdlp.pyz` are the ones of JustAnotherPU's service 0.3.12 (their sources are unchanged
+> since), committed in `native/jap-ridetube-d/build/`; `oapgen.js`, `LICENSE` and `THIRD_PARTY_LICENSES` are copies
+> beside the service, as a repo-tree tool takes files from its own folder.
+
 # RideTube
 
 [English](README.md) · [简体中文](README.zh-CN.md)
